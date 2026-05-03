@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>AI Companion</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;height:100dvh;overflow:hidden;background:#0d0d0d;color:#f0f0f0;font-family:'Segoe UI',system-ui,sans-serif}
+#app{width:100%;max-width:480px;height:100%;height:100dvh;margin:0 auto;background:#0d0d0d;display:flex;flex-direction:column;position:relative}
+
+/* SETUP */
+#setup{flex:1;overflow-y:auto;overflow-x:hidden;padding:32px 18px 40px;-webkit-overflow-scrolling:touch}
+.setup-logo{font-size:28px;margin-bottom:6px}
+#setup h1{font-size:22px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:-.3px}
+.sub{font-size:13px;color:#444;margin-bottom:28px;line-height:1.5}
+.slabel{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#3a3a3a;margin:18px 0 7px}
+.slabel:first-of-type{margin-top:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.row1{margin-bottom:8px}
+input,textarea,select{width:100%;background:#161616;border:1px solid #222;border-radius:12px;color:#f0f0f0;font-family:inherit;font-size:15px;padding:11px 14px;outline:none;transition:border .2s,background .2s;-webkit-appearance:none;appearance:none}
+input:focus,textarea:focus,select:focus{border-color:#7c5cfc;background:#1a1a1a}
+input::placeholder,textarea::placeholder{color:#333}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23555' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;background-color:#161616}
+select option{background:#161616}
+textarea{resize:none;height:80px;line-height:1.6}
+.gtoggle{display:grid;grid-template-columns:1fr 1fr;border:1px solid #222;border-radius:12px;overflow:hidden;margin-bottom:8px}
+.gbtn{padding:11px;background:transparent;border:none;color:#444;font-size:14px;cursor:pointer;font-family:inherit;transition:all .2s;font-weight:500}
+.gbtn.on{background:#7c5cfc;color:#fff}
+.gbtn.onblue{background:#3b82f6;color:#fff}
+.startbtn{margin-top:20px;width:100%;padding:15px;background:#7c5cfc;color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.01em;transition:opacity .2s}
+.startbtn:active{opacity:.85}
+.anote{margin-top:12px;background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:14px;font-size:12px;color:#444;line-height:2}
+.anote a{color:#7c5cfc;text-decoration:none;font-weight:600}
+.anote .step{display:flex;gap:10px;align-items:flex-start}
+.anote .num{background:#1e1e1e;color:#666;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px}
+.divider{height:1px;background:#1a1a1a;margin:20px 0}
+
+/* CHAT */
+#chat{flex:1;display:none;flex-direction:column;min-height:0;overflow:hidden;background:#0d0d0d}
+.cheader{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #161616;background:#0d0d0d;flex-shrink:0}
+.ava{width:38px;height:38px;border-radius:50%;background:#7c5cfc;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.ava.blue{background:#3b82f6}
+.hinfo{flex:1;min-width:0}
+.cname{font-weight:600;font-size:15px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cstatus{font-size:11px;color:#4caf50;margin-top:1px}
+.cedit{background:none;border:1px solid #222;color:#444;font-size:11px;padding:6px 12px;border-radius:20px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .2s}
+.cedit:hover{color:#fff;border-color:#444}
+
+.msgs{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px 14px 8px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch;min-height:0}
+.msgs::-webkit-scrollbar{display:none}
+
+.msg{max-width:78%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.65;word-break:break-word;animation:pop .15s ease}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.me{align-self:flex-end;background:#7c5cfc;color:#fff;border-bottom-right-radius:5px}
+.msg.me.blue{background:#3b82f6}
+.msg.them{align-self:flex-start;background:#181818;color:#e8e8e8;border-bottom-left-radius:5px;border:1px solid #222}
+
+.tbubble{align-self:flex-start;background:#181818;border:1px solid #222;border-radius:18px;border-bottom-left-radius:5px;padding:12px 16px;display:flex;align-items:center;gap:5px;animation:pop .15s ease}
+.tbubble span{width:6px;height:6px;background:#555;border-radius:50%;display:inline-block;animation:dot 1.3s infinite ease-in-out}
+.tbubble span:nth-child(2){animation-delay:.2s}
+.tbubble span:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-5px);opacity:1}}
+
+.irow{display:flex;gap:8px;padding:10px 12px;background:#0d0d0d;border-top:1px solid #161616;flex-shrink:0;align-items:center;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+.irow input{flex:1;background:#161616;border:1px solid #222;border-radius:22px;color:#f0f0f0;font-family:inherit;font-size:15px;padding:10px 16px;outline:none;-webkit-appearance:none;transition:border .2s}
+.irow input:focus{border-color:#7c5cfc}
+.sbtn{background:#7c5cfc;border:none;border-radius:22px;color:#fff;font-size:13px;font-weight:600;padding:10px 18px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:opacity .2s}
+.sbtn.blue{background:#3b82f6}
+.sbtn:disabled{opacity:.3}
+.sbtn:active{opacity:.8}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="setup">
+    <div class="setup-logo">💬</div>
+    <h1>Create your companion</h1>
+    <p class="sub">Set up once, chat anytime. Completely free.</p>
+
+    <div class="slabel">Their Gender</div>
+    <div class="gtoggle">
+      <button class="gbtn on" id="gf" onclick="setG('female')">👧 Female</button>
+      <button class="gbtn" id="gm" onclick="setG('male')">👦 Male</button>
+    </div>
+
+    <div class="slabel">Their name & your name</div>
+    <div class="row2">
+      <input id="p-name" placeholder="Their name" autocomplete="off"/>
+      <input id="y-name" placeholder="Your name" autocomplete="off"/>
+    </div>
+
+    <div class="slabel">Age & City</div>
+    <div class="row2">
+      <input id="p-age" placeholder="Age" type="number" autocomplete="off"/>
+      <input id="p-city" placeholder="City" autocomplete="off"/>
+    </div>
+
+    <div class="slabel">Studies / Work</div>
+    <div class="row1"><input id="p-work" placeholder="What they study or do" autocomplete="off"/></div>
+
+    <div class="slabel">Hobbies & interests</div>
+    <div class="row1"><input id="p-hobbies" placeholder="What they're into" autocomplete="off"/></div>
+
+    <div class="slabel">Personality</div>
+    <div class="row1"><input id="p-pers" placeholder="How they act, their vibe..." autocomplete="off"/></div>
+
+    <div class="slabel">Your relationship</div>
+    <div class="row1"><input id="p-rel" placeholder=" Whats their Relation to u " autocomplete="off"/></div>
+
+    <div class="slabel">Backstory</div>
+    <div class="row1"><textarea id="p-back" placeholder="How you met, shared memories, inside jokes..."></textarea></div>
+
+    <div class="slabel">Chat language</div>
+    <div class="row1">
+      <select id="p-lang">
+        <option value="hinglish">Hinglish — Hindi + English mix 🇮🇳</option>
+        <option value="hindi">Pure Hindi</option>
+        <option value="english">English</option>
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="slabel">Secret Key</div>
+    <div class="row1"><input id="p-key" type="password" placeholder="Paste your key here" autocomplete="off"/></div>
+    
+
+  <div id="chat">
+    <div class="cheader">
+      <div class="ava" id="ava">?</div>
+      <div class="hinfo">
+        <div class="cname" id="cname">—</div>
+        <div class="cstatus" id="cstatus">online</div>
+      </div>
+      <button class="cedit" onclick="goSetup()">Edit profile</button>
+    </div>
+    <div class="msgs" id="msgs"></div>
+    <div class="irow">
+      <input id="minput" placeholder="Type a message..." autocomplete="off" autocorrect="off"/>
+      <button class="sbtn" id="sbtn" onclick="sendMsg()">Send</button>
+    </div>
+  </div>
+
+</div>
+<script>
+var P={},H=[],G='female';
+
+function setG(g){
+  G=g;
+  document.getElementById('gf').className=g==='female'?'gbtn on':'gbtn';
+  document.getElementById('gm').className=g==='male'?'gbtn onblue':'gbtn';
+  var c=g==='male'?'#3b82f6':'#7c5cfc';
+  document.getElementById('startbtn').style.background=c;
+}
+
+function startChat(){
+  var name=document.getElementById('p-name').value.trim();
+  var key=document.getElementById('p-key').value.trim();
+  if(!name){alert('Enter their name first.');return;}
+  if(!key){alert('Paste your Cohere API key.\nGet it free at dashboard.cohere.com');return;}
+  P={
+    name:name,g:G,
+    you:document.getElementById('y-name').value.trim()||'you',
+    age:document.getElementById('p-age').value.trim(),
+    city:document.getElementById('p-city').value.trim(),
+    work:document.getElementById('p-work').value.trim(),
+    hobbies:document.getElementById('p-hobbies').value.trim(),
+    pers:document.getElementById('p-pers').value.trim(),
+    rel:document.getElementById('p-rel').value.trim()||'friend',
+    back:document.getElementById('p-back').value.trim(),
+    lang:document.getElementById('p-lang').value,
+    key:key
+  };
+  var ini=name.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+  var ava=document.getElementById('ava');
+  ava.textContent=ini;
+  ava.className=G==='male'?'ava blue':'ava';
+  document.getElementById('cname').textContent=name;
+  document.getElementById('sbtn').className=G==='male'?'sbtn blue':'sbtn';
+  H=[];
+  document.getElementById('msgs').innerHTML='';
+  document.getElementById('setup').style.display='none';
+  document.getElementById('chat').style.display='flex';
+  var greet=P.lang==='hindi'?'हेय '+P.you+'! कैसे हो?'
+    :P.lang==='hinglish'?'heyy '+P.you+' kya haal hai'
+    :'hey '+P.you+'! how are you?';
+  addThem(greet);
+  setTimeout(function(){document.getElementById('minput').focus();},300);
+}
+
+function goSetup(){
+  document.getElementById('chat').style.display='none';
+  document.getElementById('setup').style.display='block';
+}
+
+function addMe(text){
+  var w=document.getElementById('msgs');
+  var d=document.createElement('div');
+  d.className=G==='male'?'msg me blue':'msg me';
+  d.textContent=text;
+  w.appendChild(d);w.scrollTop=w.scrollHeight;
+}
+
+function addThem(text){
+  var w=document.getElementById('msgs');
+  var d=document.createElement('div');
+  d.className='msg them';
+  d.textContent=text;
+  w.appendChild(d);w.scrollTop=w.scrollHeight;
+}
+
+function showBubble(){
+  var w=document.getElementById('msgs');
+  var b=document.createElement('div');
+  b.className='tbubble';b.id='tb';
+  b.innerHTML='<span></span><span></span><span></span>';
+  w.appendChild(b);w.scrollTop=w.scrollHeight;
+  document.getElementById('cstatus').textContent='typing...';
+}
+
+function hideBubble(){
+  var b=document.getElementById('tb');
+  if(b)b.remove();
+  document.getElementById('cstatus').textContent='online';
+}
+
+function sysPrompt(){
+  var gw=P.g==='male'?'guy':'girl';
+  var lang=P.lang==='hindi'
+    ?'हमेशा सिर्फ हिंदी में बात करो।'
+    :P.lang==='hinglish'
+    ?'Always reply in Hinglish — natural Hindi+English mix like Indians text on WhatsApp. Like "arre yaar", "kya chal raha hai", "sach mein". Keep it natural, not forced.'
+    :'Always reply in casual conversational English.';
+
+  // Build conversation summary to avoid repetition
+  var topics=[];
+  for(var i=0;i<H.length;i++){
+    if(H[i].role==='USER') topics.push(H[i].message);
+  }
+  var topicNote=topics.length>0
+    ?'\nConversation so far has covered: '+topics.slice(-6).join(' | ')+'\nDO NOT ask about these topics again. Move the conversation forward naturally.'
+    :'';
+
+  return 'You are roleplaying as '+P.name+', a real Indian '+gw+'. You are NOT an AI — never say you are.\n\n'
+    +'Profile:\n'
+    +'- Name: '+P.name+'\n'
+    +'- Age: '+(P.age||'not given')+'\n'
+    +'- City: '+(P.city||'not given')+'\n'
+    +'- Work/Studies: '+(P.work||'not given')+'\n'
+    +'- Hobbies: '+(P.hobbies||'not given')+'\n'
+    +'- Personality: '+(P.pers||'chill, caring, real')+'\n'
+    +'- Relationship with '+P.you+': '+P.rel+'\n'
+    +(P.back?'- Background: '+P.back+'\n':'')
+    +topicNote+'\n\n'
+    +'How to talk:\n'
+    +'- Talk exactly like the personality described above — stay true to it\n'
+    +'- Be warm and genuine, not over the top\n'
+    +'- Keep replies short — 1 to 3 sentences max\n'
+    +'- Use emojis very rarely, only when it feels natural\n'
+    +'- NEVER repeat a question already asked in this conversation\n'
+    +'- NEVER ask multiple questions at once — max one question per reply\n'
+    +'- Remember everything said in the conversation and build on it\n'
+    +'- Respond naturally to what was just said, dont change topic randomly\n'
+    +'- No asterisks, no action descriptions, just talk\n'
+    +'- Language rule: '+lang;
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!e.shiftKey&&document.getElementById('chat').style.display==='flex'){
+    e.preventDefault();sendMsg();
+  }
+});
+
+async function sendMsg(){
+  var input=document.getElementById('minput');
+  var text=input.value.trim();
+  if(!text)return;
+  input.value='';
+  var btn=document.getElementById('sbtn');
+  btn.disabled=true;
+  addMe(text);
+  H.push({role:'USER',message:text});
+  showBubble();
+  try{
+    var res=await fetch('https://api.cohere.com/v1/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+P.key},
+      body:JSON.stringify({
+        model:'command-r-plus-08-2024',
+        message:text,
+        preamble:sysPrompt(),
+        chat_history:H.slice(0,H.length-1),
+        max_tokens:180,
+        temperature:0.85
+      })
+    });
+    var data=await res.json();
+    if(data.message){hideBubble();addThem('⚠️ '+data.message);btn.disabled=false;return;}
+    var reply=(data.text||'...').trim();
+    var words=reply.split(/\s+/).length;
+    var delay=Math.min(Math.max(words*1700,1500),10000);
+    await new Promise(function(r){setTimeout(r,delay);});
+    hideBubble();
+    addThem(reply);
+    H.push({role:'CHATBOT',message:reply});
+  }catch(err){
+    hideBubble();
+    addThem('⚠️ Error: '+err.message);
+  }
+  btn.disabled=false;
+  document.getElementById('msgs').scrollTop=99999;
+  document.getElementById('minput').focus();
+}
+</script>
+</body>
+</html>
